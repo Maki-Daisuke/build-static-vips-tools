@@ -214,17 +214,17 @@ RUN curl -L https://poppler.freedesktop.org/poppler-26.02.0.tar.xz | tar xJ  && 
     -DCMAKE_POSITION_INDEPENDENT_CODE=ON                                        \
     -DCMAKE_PREFIX_PATH="/usr/local;/usr"                                       \
     -DCMAKE_FIND_LIBRARY_SUFFIXES=".a"                                          \
-    -DTIFF_LIBRARY="/usr/local/lib/libtiff.a"                                       \
-    -DTIFF_INCLUDE_DIR=/usr/local/include                                           \
-    -Dlcms2_LIBRARY="/usr/local/lib/liblcms2.a"                                     \
-    -Dlcms2_INCLUDE_DIR=/usr/local/include                                          \
-    -DFontconfig_LIBRARY="/usr/lib/libfontconfig.a"                                 \
-    -DFREETYPE_LIBRARY="/usr/lib/libfreetype.a"                                     \
-    -DJPEG_LIBRARY="/usr/lib/libjpeg.a"                                             \
-    -DPNG_LIBRARY="/usr/lib/libpng.a"                                               \
-    -DZLIB_LIBRARY="/usr/lib/libz.a"                                                \
-    -DCMAKE_CXX_STANDARD_LIBRARIES="-static -lstdc++ -lm -Wl,--start-group -ltiff -llzma -lzstd -lwebp -lsharpyuv -ldeflate -ljpeg -lfreetype -lbrotlidec -lbrotlicommon -lbz2 -lpng -lz -lfontconfig -lexpat -luuid -llcms2 -lopenjp2 -lcairo -lpixman-1 -lffi -lglib-2.0 -lgobject-2.0 -lgio-2.0 -leconf -lintl -Wl,--end-group -pthread" \
-    -DCMAKE_EXE_LINKER_FLAGS="-static -L/usr/local/lib -L/usr/lib -pthread" \
+    -DTIFF_LIBRARY="/usr/local/lib/libtiff.a"                                   \
+    -DTIFF_INCLUDE_DIR=/usr/local/include                                       \
+    -Dlcms2_LIBRARY="/usr/local/lib/liblcms2.a"                                 \
+    -Dlcms2_INCLUDE_DIR=/usr/local/include                                      \
+    -DFontconfig_LIBRARY="/usr/lib/libfontconfig.a"                             \
+    -DFREETYPE_LIBRARY="/usr/lib/libfreetype.a"                                 \
+    -DJPEG_LIBRARY="/usr/lib/libjpeg.a"                                         \
+    -DPNG_LIBRARY="/usr/lib/libpng.a"                                           \
+    -DZLIB_LIBRARY="/usr/lib/libz.a"                                            \
+    -DCMAKE_CXX_STANDARD_LIBRARIES="-Wl,-Bstatic -llcms2 -lopenjp2 -ltiff -lcairo -ldeflate -ljpeg -lwebp -lzstd -lpixman-1 -lgio-2.0 -lgobject-2.0 -lglib-2.0 -lfontconfig -llzma -lsharpyuv -lffi -lintl -lfreetype -lexpat -luuid -lbrotlidec -lbrotlicommon -lbz2 -lpng -leconf -lz -Wl,-Bdynamic" \
+    -DCMAKE_EXE_LINKER_FLAGS="-static -L/usr/local/lib -L/usr/lib -pthread"     \
     -DENABLE_LIBTIFF=ON                                                         \
     -DENABLE_LCMS=ON                                                            \
     -DHAVE_JPEG_MEM_SRC=ON                                                      \
@@ -249,7 +249,7 @@ RUN curl -L https://poppler.freedesktop.org/poppler-26.02.0.tar.xz | tar xJ  && 
 # So, we use `ninja -j 4` instead of `ninja -j$(nproc)` to avoid OOM errors. You may tune this value according to your environment.
 RUN curl -L https://github.com/libvips/libvips/releases/download/v8.18.0/vips-8.18.0.tar.xz | tar xJ       && \
     cd vips-8.18.0                                                                                         && \
-    export LDFLAGS="-static -L/usr/local/lib -L/usr/lib -Wl,--start-group -ltiff -lpng -lfontconfig -lfreetype -lpixman-1 -ljpeg -lwebp -lsharpyuv -lbrotlidec -lbrotlicommon -lexpat -luuid -llcms2 -lopenjp2 -lzstd -llzma -lbz2 -ldeflate -lz -lstdc++ -lm -lffi -lglib-2.0 -lgobject-2.0 -lgio-2.0 -leconf -Wl,--end-group -pthread" && \
+    export LDFLAGS="-static -L/usr/local/lib -L/usr/lib -pthread -Wl,-Bstatic -llcms2 -lopenjp2 -ltiff -ldeflate -ljpeg -lwebp -lzstd -lpixman-1 -lgio-2.0 -lgobject-2.0 -lglib-2.0 -lfontconfig -llzma -lsharpyuv -lffi -lfreetype -lexpat -luuid -lbrotlidec -lbrotlicommon -lbz2 -lpng -leconf -lz -Wl,-Bdynamic" && \
     export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH                                       && \
     meson setup build                                                                                         \
     --buildtype=release                                                                                       \
@@ -258,6 +258,7 @@ RUN curl -L https://github.com/libvips/libvips/releases/download/v8.18.0/vips-8.
     -Dintrospection=disabled                                                                                  \
     -Ddeprecated=false                                                                                        \
     -Dmagick=disabled                                                                                         \
+    -Dcplusplus=false                                                                                         \
     -Dmodules=disabled                                                                                        \
     -Dexamples=false                                                                                          \
     -Dpoppler=enabled                                                                                         \
