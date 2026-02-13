@@ -94,6 +94,16 @@ RUN curl -L https://github.com/libexif/libexif/releases/download/v0.6.25/libexif
     ./configure --prefix=/usr/local --enable-static --disable-shared --disable-docs --disable-nls        && \
     make -j$(nproc)  &&  make install
 
+# spng
+RUN curl -L https://github.com/randy408/libspng/archive/refs/tags/v0.7.4.tar.gz | tar xz  && \
+    cd libspng-0.7.4                                                                      && \
+    meson build                                                                              \
+    --buildtype=release                                                                      \
+    --default-library=static                                                                 \
+    --prefer-static                                                                          \
+    -Dstatic_zlib=true                                                                    && \
+    ninja -C build install
+
 # No static library of TIFF is found. So we build it from source.
 RUN curl -L https://download.osgeo.org/libtiff/tiff-4.7.1.tar.gz | tar xz                       && \
     cd tiff-4.7.1                                                                               && \
@@ -264,7 +274,7 @@ RUN curl -L https://github.com/libvips/libvips/releases/download/v8.18.0/vips-8.
     -Dpoppler=enabled                                                                                         \
     -Dtiff=enabled                                                                                            \
     -Djpeg=enabled                                                                                            \
-    -Dpng=enabled                                                                                             \
+    -Dspng=enabled                                                                                            \
     -Dlcms=enabled                                                                                            \
     -Dc_args="-DHAVE_ALIGNED_ALLOC=1 -DHAVE_POSIX_MEMALIGN=1"                                                 \
     -Dc_link_args="-static -leconf" -Dcpp_link_args="-static -leconf"                                      && \
