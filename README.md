@@ -21,7 +21,7 @@ The following vips command-line tools are built:
 | Format | Library | Version |
 | ------ | ------- | ------- |
 | JPEG | libjpeg-turbo | (Alpine package) |
-| PNG | libpng + libimagequant | 4.4.1 |
+| PNG | libpng + libspng + libimagequant | (Alpine) / 0.7.4 / 4.4.1 |
 | WebP | libwebp | (Alpine package) |
 | TIFF | libtiff | 4.7.1 |
 | GIF | giflib | (Alpine package) |
@@ -29,6 +29,7 @@ The following vips command-line tools are built:
 | AVIF | libheif + libaom | 1.17.6 / 3.6.1 |
 | JPEG 2000 | OpenJPEG | 2.5.4 |
 | OpenEXR | OpenEXR + Imath | 3.4.4 / 3.2.2 |
+| FITS | cfitsio | 4.6.3 |
 | PDF | poppler + cairo | 26.02.0 / 1.18.4 |
 
 Additional libraries:
@@ -38,6 +39,7 @@ Additional libraries:
 | lcms2 | ICC color management | 2.18 |
 | libexif | EXIF metadata / auto-rotation | 0.6.25 |
 | Highway | SIMD acceleration | 1.3.0 |
+| ORC | SIMD acceleration | 0.4.41 |
 | fftw | Fourier transform | (Alpine package) |
 
 ## Prerequisites
