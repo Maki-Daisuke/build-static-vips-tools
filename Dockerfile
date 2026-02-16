@@ -36,8 +36,12 @@ RUN apk add --no-cache                       \
     zlib-dev zlib-static                     \
     zstd-dev zstd-static
 
-# Create directories for libraries and pkgconfig files
-RUN mkdir -p /usr/local/include /usr/local/lib/pkgconfig
+# liborc for SIMD acceleration
+RUN curl -L https://github.com/GStreamer/orc/archive/refs/tags/0.4.41.tar.gz | tar xz   && \
+    cd orc-0.4.41                                                                       && \
+    meson setup build --buildtype=release --default-library=static --prefix=/usr/local  && \
+    ninja -C build                                                                      && \
+    ninja -C build install
 
 # CMake insists on linking with lcms2's .so, so we build statically-linked lcms2 from source instead of using apk.
 RUN curl -L https://github.com/mm2/Little-CMS/releases/download/lcms2.18/lcms2-2.18.tar.gz | tar xz  && \
@@ -265,17 +269,22 @@ RUN curl -L https://github.com/libvips/libvips/releases/download/v8.18.0/vips-8.
     --buildtype=release                                                                                       \
     --default-library=static                                                                                  \
     --prefer-static                                                                                           \
-    -Dintrospection=disabled                                                                                  \
     -Ddeprecated=false                                                                                        \
-    -Dmagick=disabled                                                                                         \
-    -Dcplusplus=false                                                                                         \
-    -Dmodules=disabled                                                                                        \
     -Dexamples=false                                                                                          \
+    -Dcplusplus=false                                                                                         \
+    -Dcpp-docs=false                                                                                          \
+    -Ddocs=false                                                                                              \
+    -Dmodules=disabled                                                                                        \
+    -Dintrospection=disabled                                                                                  \
+    -Dvapi=false                                                                                              \
+    -Dmagick=disabled                                                                                         \
+    -Dlcms=enabled                                                                                            \
+    -Dhighway=enabled                                                                                         \
+    -Dorc=enabled                                                                                             \
     -Dpoppler=enabled                                                                                         \
     -Dtiff=enabled                                                                                            \
     -Djpeg=enabled                                                                                            \
     -Dspng=enabled                                                                                            \
-    -Dlcms=enabled                                                                                            \
     -Dc_args="-DHAVE_ALIGNED_ALLOC=1 -DHAVE_POSIX_MEMALIGN=1"                                                 \
     -Dc_link_args="-static -leconf" -Dcpp_link_args="-static -leconf"                                      && \
     cd build  &&  ninja -j 4                                                                               && \
