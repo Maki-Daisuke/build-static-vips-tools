@@ -195,6 +195,12 @@ RUN curl -L https://github.com/AcademySoftwareFoundation/Imath/archive/refs/tags
     -DOPENEXR_BUILD_DOCS=OFF                                                                                && \
     make -j$(nproc)  &&  make install
 
+# cfitsio for FITS
+RUN curl -L https://github.com/HEASARC/cfitsio/archive/refs/tags/cfitsio-4.6.3.tar.gz |tar xz  && \
+    cd cfitsio-cfitsio-4.6.3                                                                   && \
+    ./configure --prefix=/usr/local --disable-shared --enable-static                           && \
+    make -j$(nproc)  &&  make install
+
 # poppler for PDF
 # We need to build cairo manually because the apk package is linked against X11.
 RUN apk add --no-cache                                                          \
@@ -285,6 +291,8 @@ RUN curl -L https://github.com/libvips/libvips/releases/download/v8.18.0/vips-8.
     -Dtiff=enabled                                                                                            \
     -Djpeg=enabled                                                                                            \
     -Dspng=enabled                                                                                            \
+    -Dopenexr=enabled                                                                                         \
+    -Dcfitsio=enabled                                                                                         \
     -Dc_args="-DHAVE_ALIGNED_ALLOC=1 -DHAVE_POSIX_MEMALIGN=1"                                                 \
     -Dc_link_args="-static -leconf" -Dcpp_link_args="-static -leconf"                                      && \
     cd build  &&  ninja -j 4                                                                               && \
