@@ -312,7 +312,7 @@ RUN cd librsvg-2.61.4                                                           
 # libvips
 # gcc cannot detect posix_memalign somehow, but musl provides it. So, we explicitly define HAVE_POSIX_MEMALIGN.
 # Linking vips-tool binaries are very memory intensive, because of the large number of dependencies linked statically.
-# So, we use `ninja -j 4` instead of `ninja -j$(nproc)` to avoid OOM errors. You may tune this value according to your environment.
+# So, we use `ninja -j 2` instead of `ninja -j$(nproc)` to avoid OOM errors. You may tune this value according to your environment.
 RUN curl -L https://github.com/libvips/libvips/releases/download/v8.18.0/vips-8.18.0.tar.xz | tar xJ       && \
     cd vips-8.18.0                                                                                         && \
     export LDFLAGS="-static -L/usr/local/lib -L/usr/lib -pthread -Wl,-Bstatic -llcms2 -lopenjp2 -ltiff -ldeflate -ljpeg -lwebp -lzstd -lpixman-1 -lgio-2.0 -lgobject-2.0 -lglib-2.0 -lfontconfig -llzma -lsharpyuv -lffi -lfreetype -lexpat -luuid -lbrotlidec -lbrotlicommon -lbz2 -lpng -leconf -lz -Wl,-Bdynamic" && \
@@ -341,7 +341,7 @@ RUN curl -L https://github.com/libvips/libvips/releases/download/v8.18.0/vips-8.
     -Dcfitsio=enabled                                                                                         \
     -Dc_args="-DHAVE_ALIGNED_ALLOC=1 -DHAVE_POSIX_MEMALIGN=1"                                                 \
     -Dc_link_args="-static -leconf" -Dcpp_link_args="-static -leconf"                                      && \
-    cd build  &&  ninja -j 4                                                                               && \
+    cd build  &&  ninja -j 2                                                                               && \
     find ./tools -maxdepth 1 -type f |xargs -i cp {} /output/                                              && \
     strip /output/*
 
