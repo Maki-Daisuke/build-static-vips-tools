@@ -41,13 +41,15 @@ RUN curl -L https://github.com/GStreamer/orc/archive/refs/tags/0.4.41.tar.gz | t
     cd orc-0.4.41                                                                       && \
     meson setup build --buildtype=release --default-library=static --prefix=/usr/local  && \
     ninja -C build                                                                      && \
-    ninja -C build install
+    ninja -C build install                                                              && \
+    cd .. && rm -rf orc-*
 
 # CMake insists on linking with lcms2's .so, so we build statically-linked lcms2 from source instead of using apk.
 RUN curl -L https://github.com/mm2/Little-CMS/releases/download/lcms2.18/lcms2-2.18.tar.gz | tar xz  && \
     cd lcms2-2.18                                                                                    && \
     ./configure --prefix=/usr/local --enable-static --disable-shared                                 && \
-    make -j$(nproc) install
+    make -j$(nproc) install                                                                          && \
+    cd .. && rm -rf lcms2-*
 
 # libeconf (Glib dependency. We need to build it from source because apk version does not support static build)
 RUN curl -L https://github.com/openSUSE/libeconf/archive/refs/tags/v0.8.3.tar.gz | tar xz  && \
@@ -57,7 +59,8 @@ RUN curl -L https://github.com/openSUSE/libeconf/archive/refs/tags/v0.8.3.tar.gz
     --default-library=static                                                                  \
     --prefix=/usr/local                                                                    && \
     ninja -C build                                                                         && \
-    ninja -C build install
+    ninja -C build install                                                                 && \
+    cd .. && rm -rf libeconf-*
 
 # libimagequant for png optimization
 RUN apk add --no-cache rust cargo                                                                  && \
@@ -75,7 +78,8 @@ RUN apk add --no-cache rust cargo                                               
     echo 'Description: Palette quantization library'    >> /usr/local/lib/pkgconfig/imagequant.pc  && \
     echo 'Version: 4.0.0'                               >> /usr/local/lib/pkgconfig/imagequant.pc  && \
     echo 'Libs: -L\${libdir} -limagequant -lm -pthread' >> /usr/local/lib/pkgconfig/imagequant.pc  && \
-    echo 'Cflags: -I\${includedir}'                     >> /usr/local/lib/pkgconfig/imagequant.pc
+    echo 'Cflags: -I\${includedir}'                     >> /usr/local/lib/pkgconfig/imagequant.pc  && \
+    cd ../.. && rm -rf libimagequant-*
 
 # Highway for SIMD intrinsics
 RUN curl -L https://github.com/google/highway/releases/download/1.3.0/highway-1.3.0.tar.gz | tar xz  && \
@@ -90,13 +94,15 @@ RUN curl -L https://github.com/google/highway/releases/download/1.3.0/highway-1.
     -DHWY_ENABLE_EXAMPLES=OFF                                                                           \
     -DHWY_ENABLE_TESTS=OFF                                                                              \
     -DHWY_ENABLE_CONTRIB=OFF                                                                         && \
-    make -j$(nproc)  &&  make install
+    make -j$(nproc)  &&  make install                                                                && \
+    cd ../.. && rm -rf highway-*
 
 # libexif for rotation support
 RUN curl -L https://github.com/libexif/libexif/releases/download/v0.6.25/libexif-0.6.25.tar.gz | tar xz  && \
     cd libexif-0.6.25                                                                                    && \
     ./configure --prefix=/usr/local --enable-static --disable-shared --disable-docs --disable-nls        && \
-    make -j$(nproc)  &&  make install
+    make -j$(nproc)  &&  make install                                                                    && \
+    cd .. && rm -rf libexif-*
 
 # spng
 RUN curl -L https://github.com/randy408/libspng/archive/refs/tags/v0.7.4.tar.gz | tar xz  && \
@@ -106,13 +112,15 @@ RUN curl -L https://github.com/randy408/libspng/archive/refs/tags/v0.7.4.tar.gz 
     --default-library=static                                                                 \
     --prefer-static                                                                          \
     -Dstatic_zlib=true                                                                    && \
-    ninja -C build install
+    ninja -C build install                                                                && \
+    cd .. && rm -rf libspng-*
 
 # No static library of TIFF is found. So we build it from source.
 RUN curl -L https://download.osgeo.org/libtiff/tiff-4.7.1.tar.gz | tar xz                       && \
     cd tiff-4.7.1                                                                               && \
     ./configure --prefix=/usr/local --enable-static --disable-shared --with-pic --disable-docs  && \
-    make -j$(nproc)  &&  make install
+    make -j$(nproc)  &&  make install                                                           && \
+    cd .. && rm -rf tiff-*
 
 # OpenJPEG (JPEG2000)
 RUN curl -L https://github.com/uclouvain/openjpeg/archive/refs/tags/v2.5.4.tar.gz | tar xz  && \
@@ -128,7 +136,8 @@ RUN curl -L https://github.com/uclouvain/openjpeg/archive/refs/tags/v2.5.4.tar.g
     -DBUILD_JPWL=OFF                                                                           \
     -DBUILD_MJ2=OFF                                                                            \
     -DBUILD_TESTING=OFF                                                                     && \
-    make -j$(nproc)  &&  make install
+    make -j$(nproc)  &&  make install                                                       && \
+    cd ../.. && rm -rf openjpeg-*
 
 # libaom (for AVIF)
 RUN apk add --no-cache nasm perl                                                      && \
@@ -144,13 +153,15 @@ RUN apk add --no-cache nasm perl                                                
     -DENABLE_TESTDATA=0                                                                  \
     -DENABLE_TESTS=0                                                                     \
     -DENABLE_TOOLS=0                                                                  && \
-    make -j$(nproc)  &&  make install
+    make -j$(nproc)  &&  make install                                                 && \
+    cd ../.. && rm -rf libaom-*
 
 # libde265 (for HEIC)
 RUN curl -L https://github.com/strukturag/libde265/releases/download/v1.0.16/libde265-1.0.16.tar.gz | tar xz  && \
     cd libde265-1.0.16                                                                                        && \
     ./configure --prefix=/usr/local --enable-static --disable-shared --disable-dec265 --disable-sherlock265   && \
-    make -j$(nproc)  &&  make install
+    make -j$(nproc)  &&  make install                                                                         && \
+    cd .. && rm -rf libde265-*
 
 # libheif
 RUN curl -L https://github.com/strukturag/libheif/releases/download/v1.17.6/libheif-1.17.6.tar.gz | tar xz  && \
@@ -164,7 +175,8 @@ RUN curl -L https://github.com/strukturag/libheif/releases/download/v1.17.6/libh
     -DBUILD_TESTING=OFF                                                                                        \
     -DWITH_GDK_PIXBUF=0                                                                                        \
     -DCMAKE_FIND_LIBRARY_SUFFIXES=".a"                                                                      && \
-    make -j$(nproc)  &&  make install
+    make -j$(nproc)  &&  make install                                                                       && \
+    cd .. && rm -rf libheif-*
 
 # OpenEXR and Imath (OpenEXR dependency)
 RUN curl -L https://github.com/AcademySoftwareFoundation/Imath/archive/refs/tags/v3.2.2.tar.gz | tar xz     && \
@@ -178,7 +190,7 @@ RUN curl -L https://github.com/AcademySoftwareFoundation/Imath/archive/refs/tags
     -DCMAKE_POSITION_INDEPENDENT_CODE=ON                                                                       \
     -DIMATH_INSTALL_PKG_CONFIG=ON                                                                           && \
     make -j$(nproc)  &&  make install                                                                       && \
-    cd /workspace                                                                                           && \
+    cd ../.. && rm -rf Imath-*                                                                              && \
     curl -L https://github.com/AcademySoftwareFoundation/openexr/archive/refs/tags/v3.4.4.tar.gz | tar xz   && \
     cd openexr-3.4.4                                                                                        && \
     mkdir -p build && cd build                                                                              && \
@@ -193,13 +205,15 @@ RUN curl -L https://github.com/AcademySoftwareFoundation/Imath/archive/refs/tags
     -DOPENEXR_BUILD_TOOLS=OFF                                                                                  \
     -DOPENEXR_BUILD_TESTS=OFF                                                                                  \
     -DOPENEXR_BUILD_DOCS=OFF                                                                                && \
-    make -j$(nproc)  &&  make install
+    make -j$(nproc)  &&  make install                                                                       && \
+    cd ../.. && rm -rf openexr-*
 
 # cfitsio for FITS
 RUN curl -L https://github.com/HEASARC/cfitsio/archive/refs/tags/cfitsio-4.6.3.tar.gz |tar xz  && \
     cd cfitsio-cfitsio-4.6.3                                                                   && \
     ./configure --prefix=/usr/local --disable-shared --enable-static                           && \
-    make -j$(nproc)  &&  make install
+    make -j$(nproc)  &&  make install                                                          && \
+    cd .. && rm -rf cfitsio-cfitsio-*
 
 # Cairo required by librsvg and poppler
 # We need to build cairo manually because the apk package is linked against X11.
@@ -220,7 +234,8 @@ RUN apk add --no-cache                                                          
     -Dfontconfig=enabled                                                        \
     -Dfreetype=enabled                                                       && \
     ninja -C build install                                                   && \
-    cd /workspace                                                           
+    cd /workspace                                                            && \
+    rm -rf cairo-*
 
 # poppler for PDF
 RUN curl -L https://poppler.freedesktop.org/poppler-26.02.0.tar.xz | tar xJ  && \
@@ -262,7 +277,8 @@ RUN curl -L https://poppler.freedesktop.org/poppler-26.02.0.tar.xz | tar xJ  && 
     -DBUILD_TESTING=OFF                                                         \
     -DPOPPLER_BUILD_TESTS=OFF                                                   \
     -DPOPPLER_BUILD_DOCS=OFF                                                 && \
-    make -j$(nproc)  &&  make install
+    make -j$(nproc)  &&  make install                                        && \
+    cd ../.. && rm -rf poppler-*
 
 # dav1d required by librsvg
 RUN curl -L https://code.videolan.org/videolan/dav1d/-/archive/1.5.3/dav1d-1.5.3.tar.gz | tar xz  && \
@@ -275,7 +291,8 @@ RUN curl -L https://code.videolan.org/videolan/dav1d/-/archive/1.5.3/dav1d-1.5.3
     -Dprefix=/usr/local                                                                              \
     -Denable_tools=false                                                                          && \
     meson compile -C build                                                                        && \
-    meson install -C build
+    meson install -C build                                                                        && \
+    cd .. && rm -rf dav1d-*
 
 # librsvg for SVG
 # blkid.pc does not require libeconf correctly, so, add it manually.
@@ -300,14 +317,14 @@ RUN apk add --no-cache rust cargo cargo-c fribidi-dev fribidi-static            
     -Dvala=disabled                                                                                   \
     -Davif=enabled                                                                                 && \
     meson compile -C build -j 2                                                                    && \
-    meson install -C build
-
-# fix pkgconfig
-RUN cd librsvg-2.61.4                                                                              && \
+    meson install -C build                                                                         && \
+    # fix pkgconfig
     find build -name librsvg_c.pc -exec cp {} /usr/local/lib/pkgconfig/librsvg-2.0.pc \;           && \
     sed -i 's/-lrsvg_2/-lrsvg-2/g' /usr/local/lib/pkgconfig/librsvg-2.0.pc                         && \
     sed -i 's/-lgcc_s//g' /usr/local/lib/pkgconfig/librsvg-2.0.pc                                  && \
-    sed -i 's/^Cflags:.*$/& -I${includedir}\/librsvg-2.0/' /usr/local/lib/pkgconfig/librsvg-2.0.pc
+    sed -i 's/^Cflags:.*$/& -I${includedir}\/librsvg-2.0/' /usr/local/lib/pkgconfig/librsvg-2.0.pc && \
+    cd .. && rm -rf librsvg-* && rm -rf /root/.cargo
+
 
 # libvips
 # gcc cannot detect posix_memalign somehow, but musl provides it. So, we explicitly define HAVE_POSIX_MEMALIGN.
