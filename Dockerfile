@@ -201,7 +201,7 @@ RUN curl -L https://github.com/HEASARC/cfitsio/archive/refs/tags/cfitsio-4.6.3.t
     ./configure --prefix=/usr/local --disable-shared --enable-static                           && \
     make -j$(nproc)  &&  make install
 
-# poppler for PDF
+# Cairo required by librsvg and poppler
 # We need to build cairo manually because the apk package is linked against X11.
 RUN apk add --no-cache                                                          \
     fontconfig-dev fontconfig-static                                            \
@@ -222,6 +222,7 @@ RUN apk add --no-cache                                                          
     ninja -C build install                                                   && \
     cd /workspace                                                           
 
+# poppler for PDF
 RUN curl -L https://poppler.freedesktop.org/poppler-26.02.0.tar.xz | tar xJ  && \
     cd poppler-26.02.0                                                       && \
     mkdir -p build && cd build                                               && \
@@ -262,6 +263,51 @@ RUN curl -L https://poppler.freedesktop.org/poppler-26.02.0.tar.xz | tar xJ  && 
     -DPOPPLER_BUILD_TESTS=OFF                                                   \
     -DPOPPLER_BUILD_DOCS=OFF                                                 && \
     make -j$(nproc)  &&  make install
+
+# dav1d required by librsvg
+RUN curl -L https://code.videolan.org/videolan/dav1d/-/archive/1.5.3/dav1d-1.5.3.tar.gz | tar xz  && \
+    cd dav1d-1.5.3                                                                                && \
+    mkdir -p build                                                                                && \
+    meson setup build                                                                                \
+    --buildtype=release                                                                              \
+    --default-library=static                                                                         \
+    --prefer-static                                                                                  \
+    -Dprefix=/usr/local                                                                              \
+    -Denable_tools=false                                                                          && \
+    meson compile -C build                                                                        && \
+    meson install -C build
+
+# librsvg for SVG
+# blkid.pc does not require libeconf correctly, so, add it manually.
+RUN apk add --no-cache rust cargo cargo-c fribidi-dev fribidi-static                                  \
+    graphite2-dev graphite2-static harfbuzz-dev harfbuzz-static                                    && \
+    export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:/usr/lib/pkgconfig"                           && \
+    export CARGO_BUILD_JOBS=2                                                                      && \
+    echo 'Requires.private: libeconf' >> /usr/lib/pkgconfig/blkid.pc                               && \
+    curl -L https://gitlab.gnome.org/GNOME/librsvg/-/archive/2.61.4/librsvg-2.61.4.tar.gz |tar xz  && \
+    cd librsvg-2.61.4                                                                              && \
+    mkdir -p build subprojects                                                                     && \
+    meson wrap install gdk-pixbuf                                                                  && \
+    meson wrap install libxml2                                                                     && \
+    meson wrap install pango                                                                       && \
+    meson setup build                                                                                 \
+    --buildtype=release                                                                               \
+    --default-library=static                                                                          \
+    --prefer-static                                                                                   \
+    -Dprefix=/usr/local                                                                               \
+    -Ddocs=disabled                                                                                   \
+    -Dintrospection=disabled                                                                          \
+    -Dvala=disabled                                                                                   \
+    -Davif=enabled                                                                                 && \
+    meson compile -C build -j 2                                                                    && \
+    meson install -C build
+
+# fix pkgconfig
+RUN cd librsvg-2.61.4                                                                              && \
+    find build -name librsvg_c.pc -exec cp {} /usr/local/lib/pkgconfig/librsvg-2.0.pc \;           && \
+    sed -i 's/-lrsvg_2/-lrsvg-2/g' /usr/local/lib/pkgconfig/librsvg-2.0.pc                         && \
+    sed -i 's/-lgcc_s//g' /usr/local/lib/pkgconfig/librsvg-2.0.pc                                  && \
+    sed -i 's/^Cflags:.*$/& -I${includedir}\/librsvg-2.0/' /usr/local/lib/pkgconfig/librsvg-2.0.pc
 
 # libvips
 # gcc cannot detect posix_memalign somehow, but musl provides it. So, we explicitly define HAVE_POSIX_MEMALIGN.
