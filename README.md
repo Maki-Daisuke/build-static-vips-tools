@@ -31,16 +31,19 @@ The following vips command-line tools are built:
 | OpenEXR | OpenEXR + Imath | 3.4.4 / 3.2.2 |
 | FITS | cfitsio | 4.6.3 |
 | PDF | poppler + cairo | 26.02.0 / 1.18.4 |
+| SVG | librsvg | 2.61.4 |
 
 Additional libraries:
 
-| Library | Purpose | Version |
-| ------- | ------- | ------- |
-| lcms2 | ICC color management | 2.18 |
-| libexif | EXIF metadata / auto-rotation | 0.6.25 |
-| Highway | SIMD acceleration | 1.3.0 |
-| ORC | SIMD acceleration | 0.4.41 |
-| fftw | Fourier transform | (Alpine package) |
+| Library | Purpose | Version | Notes |
+| ------- | ------- | ------- | ----- |
+| lcms2 | ICC color management | 2.18 | |
+| libexif | EXIF metadata / auto-rotation | 0.6.25 | |
+| Highway | SIMD acceleration | 1.3.0 | |
+| ORC | SIMD acceleration | 0.4.41 | |
+| dav1d | AV1 decoder | 1.5.3 | Required by librsvg |
+| libeconf | Configuration parser | 0.8.3 | Statically built (apk lacks static lib) |
+| fftw | Fourier transform | (Alpine package) | |
 
 ## Prerequisites
 
@@ -58,7 +61,7 @@ docker run --privileged --rm tonistiigi/binfmt --install all
 
 > [!NOTE]
 > The final linking stage is very memory-intensive due to the large number of statically-linked dependencies.
-> The build uses `ninja -j 4` (instead of `-j$(nproc)`) to avoid OOM errors.
+> The build uses `ninja -j 2` (instead of `-j$(nproc)`) to avoid OOM errors.
 > Ensure your Docker environment has sufficient memory (16 GB+ recommended) and disk space.
 
 ## Usage
