@@ -59,7 +59,7 @@ docker run --privileged --rm tonistiigi/binfmt --install all
 > [!NOTE]
 > The final linking stage is very memory-intensive due to the large number of statically-linked dependencies.
 > The build uses `ninja -j 4` (instead of `-j$(nproc)`) to avoid OOM errors.
-> Ensure your Docker environment has sufficient memory (8 GB+ recommended) and disk space.
+> Ensure your Docker environment has sufficient memory (16 GB+ recommended) and disk space.
 
 ## Usage
 
