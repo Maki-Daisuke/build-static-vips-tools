@@ -280,7 +280,7 @@ RUN curl -L https://code.videolan.org/videolan/dav1d/-/archive/1.5.3/dav1d-1.5.3
 # librsvg for SVG
 # blkid.pc does not require libeconf correctly, so, add it manually.
 RUN apk add --no-cache rust cargo cargo-c fribidi-dev fribidi-static                                  \
-    graphite2-dev graphite2-static harfbuzz-dev harfbuzz-static                                    && \
+    graphite2-dev graphite2-static harfbuzz-dev harfbuzz-static libxml2-dev libxml2-static         && \
     export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:/usr/lib/pkgconfig"                           && \
     export CARGO_BUILD_JOBS=2                                                                      && \
     echo 'Requires.private: libeconf' >> /usr/lib/pkgconfig/blkid.pc                               && \
