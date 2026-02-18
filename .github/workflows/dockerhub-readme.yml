@@ -35,7 +35,67 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push
+      - name: Build builder-basics
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: builder-basics
+          platforms: ${{ matrix.platform }}
+          push: false
+          cache-from: type=gha,scope=${{ matrix.suffix }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.suffix }}
+
+      - name: Build builder-heif
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: builder-heif
+          platforms: ${{ matrix.platform }}
+          push: false
+          cache-from: type=gha,scope=${{ matrix.suffix }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.suffix }}
+
+      - name: Build builder-exr
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: builder-exr
+          platforms: ${{ matrix.platform }}
+          push: false
+          cache-from: type=gha,scope=${{ matrix.suffix }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.suffix }}
+
+      - name: Build builder-cairo
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: builder-cairo
+          platforms: ${{ matrix.platform }}
+          push: false
+          cache-from: type=gha,scope=${{ matrix.suffix }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.suffix }}
+
+      - name: Build builder-poppler
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: builder-poppler
+          platforms: ${{ matrix.platform }}
+          push: false
+          cache-from: type=gha,scope=${{ matrix.suffix }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.suffix }}
+
+      - name: Build builder-svg
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: builder-svg
+          platforms: ${{ matrix.platform }}
+          push: false
+          cache-from: type=gha,scope=${{ matrix.suffix }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.suffix }}
+
+      - name: Build and push final image
         uses: docker/build-push-action@v6
         with:
           context: .

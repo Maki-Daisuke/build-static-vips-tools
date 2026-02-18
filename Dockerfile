@@ -1,4 +1,17 @@
-FROM alpine:3.23
+# syntax=docker/dockerfile:1
+
+###
+# Multi-stage build optimized for GitHub Actions caching.
+#
+# Because building vips (and dependencies like librsvg) is time-consuming and can exceed CI time limits,
+# we split the build into sequential stages. This allows GitHub Actions to cache intermediate layers effectively,
+# preventing timeouts and speeding up incremental builds.
+#
+# The final image is built FROM scratch, with all static binaries exported to `/output`.
+###
+# Base Stage
+###
+FROM alpine:3.23 AS base
 
 # Output directory for the binary
 RUN mkdir /output
@@ -6,20 +19,35 @@ RUN mkdir /output
 # Set the working directory
 WORKDIR /workspace
 
-# Install build tools
+# Install build tools and common dependencies
 RUN apk update &&                            \
     apk add --no-cache                       \
     build-base cmake curl git pkgconfig      \
-    meson ninja patchelf
-
-# Install Glib and its dependencies
-RUN apk add --no-cache                       \
+    meson ninja patchelf                     \
     glib-dev glib-static                     \
     expat-dev expat-static                   \
     libeconf-dev                             \
     libffi-dev                               \
     pcre2-dev pcre2-static                   \
-    util-linux-dev util-linux-static
+    util-linux-dev util-linux-static         \
+    linux-headers
+
+###
+# Builder Stage 1: Basics
+# Foundation libraries and those with few dependencies.
+# - Image format libraries (apk)
+# - liborc
+# - lcms2
+# - libeconf
+# - libimagequant
+# - Highway
+# - libexif
+# - libspng
+# - libtiff
+# - OpenJPEG
+# - cfitsio
+###
+FROM base AS builder-basics
 
 # Install image format libraries (apk available)
 RUN apk add --no-cache                       \
@@ -141,6 +169,19 @@ RUN curl -L https://github.com/uclouvain/openjpeg/archive/refs/tags/v2.5.4.tar.g
     make -j$(nproc)  &&  make install                                                       && \
     cd ../.. && rm -rf openjpeg-*
 
+# cfitsio for FITS
+RUN curl -L https://github.com/HEASARC/cfitsio/archive/refs/tags/cfitsio-4.6.3.tar.gz |tar xz  && \
+    cd cfitsio-cfitsio-4.6.3                                                                   && \
+    ./configure --prefix=/usr/local --disable-shared --enable-static                           && \
+    make -j$(nproc)  &&  make install                                                          && \
+    cd .. && rm -rf cfitsio-cfitsio-*
+
+###
+# Builder Stage 2: HEIF / AVIF
+# Depends on: libde265, libaom
+###
+FROM builder-basics AS builder-heif
+
 # libaom (for AVIF)
 RUN apk add --no-cache nasm perl                                                      && \
     curl -L https://storage.googleapis.com/aom-releases/libaom-3.6.1.tar.gz | tar xz  && \
@@ -180,6 +221,12 @@ RUN curl -L https://github.com/strukturag/libheif/releases/download/v1.17.6/libh
     make -j$(nproc)  &&  make install                                                                       && \
     cd .. && rm -rf libheif-*
 
+###
+# Builder Stage 3: OpenEXR
+# Depends on: Imath
+###
+FROM builder-heif AS builder-exr
+
 # OpenEXR and Imath (OpenEXR dependency)
 RUN curl -L https://github.com/AcademySoftwareFoundation/Imath/archive/refs/tags/v3.2.2.tar.gz | tar xz     && \
     cd Imath-3.2.2                                                                                          && \
@@ -210,12 +257,11 @@ RUN curl -L https://github.com/AcademySoftwareFoundation/Imath/archive/refs/tags
     make -j$(nproc)  &&  make install                                                                       && \
     cd ../.. && rm -rf openexr-*
 
-# cfitsio for FITS
-RUN curl -L https://github.com/HEASARC/cfitsio/archive/refs/tags/cfitsio-4.6.3.tar.gz |tar xz  && \
-    cd cfitsio-cfitsio-4.6.3                                                                   && \
-    ./configure --prefix=/usr/local --disable-shared --enable-static                           && \
-    make -j$(nproc)  &&  make install                                                          && \
-    cd .. && rm -rf cfitsio-cfitsio-*
+###
+# Builder Stage 4: Cairo
+# Depends on: glib (from base), fontconfig, freetype, pixman (apk)
+###
+FROM builder-exr AS builder-cairo
 
 # Cairo required by librsvg and poppler
 # We need to build cairo manually because the apk package is linked against X11.
@@ -238,6 +284,12 @@ RUN apk add --no-cache                                                          
     ninja -C build install                                                   && \
     cd /workspace                                                            && \
     rm -rf cairo-*
+
+###
+# Builder Stage 5: Poppler
+# Depends on: Cairo, TIFF, OpenJPEG, LCMS2, etc.
+###
+FROM builder-cairo AS builder-poppler
 
 # poppler for PDF
 RUN curl -L https://poppler.freedesktop.org/poppler-26.02.0.tar.xz | tar xJ  && \
@@ -282,6 +334,12 @@ RUN curl -L https://poppler.freedesktop.org/poppler-26.02.0.tar.xz | tar xJ  && 
     make -j$(nproc)  &&  make install                                        && \
     cd ../.. && rm -rf poppler-*
 
+###
+# Builder Stage 6: SVG
+# Depends on: Cairo, dav1d (built here)
+###
+FROM builder-poppler AS builder-svg
+
 # dav1d required by librsvg
 RUN curl -L https://code.videolan.org/videolan/dav1d/-/archive/1.5.3/dav1d-1.5.3.tar.gz | tar xz  && \
     cd dav1d-1.5.3                                                                                && \
@@ -325,6 +383,11 @@ RUN apk add --no-cache rust cargo cargo-c fribidi-dev fribidi-static            
     sed -i 's/^Cflags:.*$/& -I${includedir}\/librsvg-2.0/' /usr/local/lib/pkgconfig/librsvg-2.0.pc && \
     cd .. && rm -rf librsvg-* && rm -rf /root/.cargo
 
+###
+# Builder Stage 7: Libvips (Final)
+# Depends on: All previous stages
+###
+FROM builder-svg AS builder-final
 
 # libvips
 # gcc cannot detect posix_memalign somehow, but musl provides it. So, we explicitly define HAVE_POSIX_MEMALIGN.
@@ -362,7 +425,10 @@ RUN curl -L https://github.com/libvips/libvips/releases/download/v8.18.0/vips-8.
     find ./tools -maxdepth 1 -type f |xargs -i cp {} /output/                                              && \
     strip /output/*
 
-# Output directory for the binary
-WORKDIR /output
+###
+# Export Stage
+###
+FROM scratch
+COPY --from=builder-final /output /output
+ENTRYPOINT ["/output/vips"]
 
-CMD ["sh"]
