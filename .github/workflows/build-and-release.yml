@@ -50,8 +50,8 @@ jobs:
           target: builder-basics
           platforms: ${{ matrix.platform }}
           push: false
-          cache-from: type=registry,ref=ghcr.io/maki-daisuke/build-statically-linked-vips-tools:buildcache-${{ matrix.suffix }}
-          cache-to: type=registry,ref=ghcr.io/maki-daisuke/build-statically-linked-vips-tools:buildcache-${{ matrix.suffix }},mode=max
+          cache-from: type=registry,ref=ghcr.io/maki-daisuke/build-statically-linked-vips-tools:buildcache-basics-${{ matrix.suffix }}
+          cache-to: type=registry,ref=ghcr.io/maki-daisuke/build-statically-linked-vips-tools:buildcache-basics-${{ matrix.suffix }},mode=max
 
       - name: Build builder-heif
         uses: docker/build-push-action@v6
@@ -60,8 +60,8 @@ jobs:
           target: builder-heif
           platforms: ${{ matrix.platform }}
           push: false
-          cache-from: type=registry,ref=ghcr.io/maki-daisuke/build-statically-linked-vips-tools:buildcache-${{ matrix.suffix }}
-          cache-to: type=registry,ref=ghcr.io/maki-daisuke/build-statically-linked-vips-tools:buildcache-${{ matrix.suffix }},mode=max
+          cache-from: type=registry,ref=ghcr.io/maki-daisuke/build-statically-linked-vips-tools:buildcache-heif-${{ matrix.suffix }}
+          cache-to: type=registry,ref=ghcr.io/maki-daisuke/build-statically-linked-vips-tools:buildcache-heif-${{ matrix.suffix }},mode=max
 
       - name: Build builder-exr
         uses: docker/build-push-action@v6
@@ -70,8 +70,8 @@ jobs:
           target: builder-exr
           platforms: ${{ matrix.platform }}
           push: false
-          cache-from: type=registry,ref=ghcr.io/maki-daisuke/build-statically-linked-vips-tools:buildcache-${{ matrix.suffix }}
-          cache-to: type=registry,ref=ghcr.io/maki-daisuke/build-statically-linked-vips-tools:buildcache-${{ matrix.suffix }},mode=max
+          cache-from: type=registry,ref=ghcr.io/maki-daisuke/build-statically-linked-vips-tools:buildcache-exr-${{ matrix.suffix }}
+          cache-to: type=registry,ref=ghcr.io/maki-daisuke/build-statically-linked-vips-tools:buildcache-exr-${{ matrix.suffix }},mode=max
 
       - name: Build builder-cairo
         uses: docker/build-push-action@v6
@@ -80,8 +80,8 @@ jobs:
           target: builder-cairo
           platforms: ${{ matrix.platform }}
           push: false
-          cache-from: type=registry,ref=ghcr.io/maki-daisuke/build-statically-linked-vips-tools:buildcache-${{ matrix.suffix }}
-          cache-to: type=registry,ref=ghcr.io/maki-daisuke/build-statically-linked-vips-tools:buildcache-${{ matrix.suffix }},mode=max
+          cache-from: type=registry,ref=ghcr.io/maki-daisuke/build-statically-linked-vips-tools:buildcache-cairo-${{ matrix.suffix }}
+          cache-to: type=registry,ref=ghcr.io/maki-daisuke/build-statically-linked-vips-tools:buildcache-cairo-${{ matrix.suffix }},mode=max
 
       - name: Build builder-poppler
         uses: docker/build-push-action@v6
@@ -90,8 +90,8 @@ jobs:
           target: builder-poppler
           platforms: ${{ matrix.platform }}
           push: false
-          cache-from: type=registry,ref=ghcr.io/maki-daisuke/build-statically-linked-vips-tools:buildcache-${{ matrix.suffix }}
-          cache-to: type=registry,ref=ghcr.io/maki-daisuke/build-statically-linked-vips-tools:buildcache-${{ matrix.suffix }},mode=max
+          cache-from: type=registry,ref=ghcr.io/maki-daisuke/build-statically-linked-vips-tools:buildcache-poppler-${{ matrix.suffix }}
+          cache-to: type=registry,ref=ghcr.io/maki-daisuke/build-statically-linked-vips-tools:buildcache-poppler-${{ matrix.suffix }},mode=max
 
       - name: Build builder-svg
         uses: docker/build-push-action@v6
@@ -100,8 +100,8 @@ jobs:
           target: builder-svg
           platforms: ${{ matrix.platform }}
           push: false
-          cache-from: type=registry,ref=ghcr.io/maki-daisuke/build-statically-linked-vips-tools:buildcache-${{ matrix.suffix }}
-          cache-to: type=registry,ref=ghcr.io/maki-daisuke/build-statically-linked-vips-tools:buildcache-${{ matrix.suffix }},mode=max
+          cache-from: type=registry,ref=ghcr.io/maki-daisuke/build-statically-linked-vips-tools:buildcache-svg-${{ matrix.suffix }}
+          cache-to: type=registry,ref=ghcr.io/maki-daisuke/build-statically-linked-vips-tools:buildcache-svg-${{ matrix.suffix }},mode=max
 
       - name: Build and push final image
         uses: docker/build-push-action@v6
@@ -110,8 +110,8 @@ jobs:
           platforms: ${{ matrix.platform }}
           push: true
           tags: makidaisuke/vips-tools-static:${{ github.ref_name }}-${{ matrix.suffix }}
-          cache-from: type=registry,ref=ghcr.io/maki-daisuke/build-statically-linked-vips-tools:buildcache-${{ matrix.suffix }}
-          cache-to: type=registry,ref=ghcr.io/maki-daisuke/build-statically-linked-vips-tools:buildcache-${{ matrix.suffix }},mode=max
+          cache-from: type=registry,ref=ghcr.io/maki-daisuke/build-statically-linked-vips-tools:buildcache-final-${{ matrix.suffix }}
+          cache-to: type=registry,ref=ghcr.io/maki-daisuke/build-statically-linked-vips-tools:buildcache-final-${{ matrix.suffix }},mode=max
 
       - name: Extract binaries from the built image
         run: |
