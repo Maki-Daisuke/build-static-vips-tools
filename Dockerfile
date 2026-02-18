@@ -60,6 +60,8 @@ RUN curl -L https://github.com/openSUSE/libeconf/archive/refs/tags/v0.8.3.tar.gz
     --prefix=/usr/local                                                                    && \
     ninja -C build                                                                         && \
     ninja -C build install                                                                 && \
+    # blkid.pc requires libeconf, but it is not linked to it. So, add it manually.
+    echo 'Requires.private: libeconf' >> /usr/lib/pkgconfig/blkid.pc                       && \
     cd .. && rm -rf libeconf-*
 
 # libimagequant for png optimization
@@ -300,12 +302,10 @@ RUN apk add --no-cache rust cargo cargo-c fribidi-dev fribidi-static            
     graphite2-dev graphite2-static harfbuzz-dev harfbuzz-static libxml2-dev libxml2-static         && \
     export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:/usr/lib/pkgconfig"                           && \
     export CARGO_BUILD_JOBS=2                                                                      && \
-    echo 'Requires.private: libeconf' >> /usr/lib/pkgconfig/blkid.pc                               && \
     curl -L https://gitlab.gnome.org/GNOME/librsvg/-/archive/2.61.4/librsvg-2.61.4.tar.gz |tar xz  && \
     cd librsvg-2.61.4                                                                              && \
     mkdir -p build subprojects                                                                     && \
     meson wrap install gdk-pixbuf                                                                  && \
-    meson wrap install libxml2                                                                     && \
     meson wrap install pango                                                                       && \
     meson setup build                                                                                 \
     --buildtype=release                                                                               \
