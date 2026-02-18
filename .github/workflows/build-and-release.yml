@@ -18,6 +18,7 @@ jobs:
             suffix: arm64
     permissions:
       contents: write
+      packages: write # needed for ghcr cache
 
     steps:
       - name: Checkout repository
@@ -35,6 +36,13 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Login to GitHub Container Registry (GHCR)
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Build builder-basics
         uses: docker/build-push-action@v6
         with:
@@ -42,8 +50,8 @@ jobs:
           target: builder-basics
           platforms: ${{ matrix.platform }}
           push: false
-          cache-from: type=gha,scope=${{ matrix.suffix }}
-          cache-to: type=gha,mode=max,scope=${{ matrix.suffix }}
+          cache-from: type=registry,ref=ghcr.io/maki-daisuke/build-statically-linked-vips-tools:buildcache-${{ matrix.suffix }}
+          cache-to: type=registry,ref=ghcr.io/maki-daisuke/build-statically-linked-vips-tools:buildcache-${{ matrix.suffix }},mode=max
 
       - name: Build builder-heif
         uses: docker/build-push-action@v6
@@ -52,8 +60,8 @@ jobs:
           target: builder-heif
           platforms: ${{ matrix.platform }}
           push: false
-          cache-from: type=gha,scope=${{ matrix.suffix }}
-          cache-to: type=gha,mode=max,scope=${{ matrix.suffix }}
+          cache-from: type=registry,ref=ghcr.io/maki-daisuke/build-statically-linked-vips-tools:buildcache-${{ matrix.suffix }}
+          cache-to: type=registry,ref=ghcr.io/maki-daisuke/build-statically-linked-vips-tools:buildcache-${{ matrix.suffix }},mode=max
 
       - name: Build builder-exr
         uses: docker/build-push-action@v6
@@ -62,8 +70,8 @@ jobs:
           target: builder-exr
           platforms: ${{ matrix.platform }}
           push: false
-          cache-from: type=gha,scope=${{ matrix.suffix }}
-          cache-to: type=gha,mode=max,scope=${{ matrix.suffix }}
+          cache-from: type=registry,ref=ghcr.io/maki-daisuke/build-statically-linked-vips-tools:buildcache-${{ matrix.suffix }}
+          cache-to: type=registry,ref=ghcr.io/maki-daisuke/build-statically-linked-vips-tools:buildcache-${{ matrix.suffix }},mode=max
 
       - name: Build builder-cairo
         uses: docker/build-push-action@v6
@@ -72,8 +80,8 @@ jobs:
           target: builder-cairo
           platforms: ${{ matrix.platform }}
           push: false
-          cache-from: type=gha,scope=${{ matrix.suffix }}
-          cache-to: type=gha,mode=max,scope=${{ matrix.suffix }}
+          cache-from: type=registry,ref=ghcr.io/maki-daisuke/build-statically-linked-vips-tools:buildcache-${{ matrix.suffix }}
+          cache-to: type=registry,ref=ghcr.io/maki-daisuke/build-statically-linked-vips-tools:buildcache-${{ matrix.suffix }},mode=max
 
       - name: Build builder-poppler
         uses: docker/build-push-action@v6
@@ -82,8 +90,8 @@ jobs:
           target: builder-poppler
           platforms: ${{ matrix.platform }}
           push: false
-          cache-from: type=gha,scope=${{ matrix.suffix }}
-          cache-to: type=gha,mode=max,scope=${{ matrix.suffix }}
+          cache-from: type=registry,ref=ghcr.io/maki-daisuke/build-statically-linked-vips-tools:buildcache-${{ matrix.suffix }}
+          cache-to: type=registry,ref=ghcr.io/maki-daisuke/build-statically-linked-vips-tools:buildcache-${{ matrix.suffix }},mode=max
 
       - name: Build builder-svg
         uses: docker/build-push-action@v6
@@ -92,8 +100,8 @@ jobs:
           target: builder-svg
           platforms: ${{ matrix.platform }}
           push: false
-          cache-from: type=gha,scope=${{ matrix.suffix }}
-          cache-to: type=gha,mode=max,scope=${{ matrix.suffix }}
+          cache-from: type=registry,ref=ghcr.io/maki-daisuke/build-statically-linked-vips-tools:buildcache-${{ matrix.suffix }}
+          cache-to: type=registry,ref=ghcr.io/maki-daisuke/build-statically-linked-vips-tools:buildcache-${{ matrix.suffix }},mode=max
 
       - name: Build and push final image
         uses: docker/build-push-action@v6
@@ -102,8 +110,8 @@ jobs:
           platforms: ${{ matrix.platform }}
           push: true
           tags: makidaisuke/vips-tools-static:${{ github.ref_name }}-${{ matrix.suffix }}
-          cache-from: type=gha,scope=${{ matrix.suffix }}
-          cache-to: type=gha,mode=max,scope=${{ matrix.suffix }}
+          cache-from: type=registry,ref=ghcr.io/maki-daisuke/build-statically-linked-vips-tools:buildcache-${{ matrix.suffix }}
+          cache-to: type=registry,ref=ghcr.io/maki-daisuke/build-statically-linked-vips-tools:buildcache-${{ matrix.suffix }},mode=max
 
       - name: Extract binaries from the built image
         run: |
