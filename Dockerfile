@@ -355,7 +355,6 @@ RUN curl -L https://code.videolan.org/videolan/dav1d/-/archive/1.5.3/dav1d-1.5.3
     cd .. && rm -rf dav1d-*
 
 # librsvg for SVG
-# blkid.pc does not require libeconf correctly, so, add it manually.
 RUN apk add --no-cache rust cargo cargo-c fribidi-dev fribidi-static                                  \
     graphite2-dev graphite2-static harfbuzz-dev harfbuzz-static libxml2-dev libxml2-static         && \
     export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:/usr/lib/pkgconfig"                           && \
@@ -390,9 +389,6 @@ RUN apk add --no-cache rust cargo cargo-c fribidi-dev fribidi-static            
 FROM builder-svg AS builder-final
 
 # libvips
-# gcc cannot detect posix_memalign somehow, but musl provides it. So, we explicitly define HAVE_POSIX_MEMALIGN.
-# Linking vips-tool binaries are very memory intensive, because of the large number of dependencies linked statically.
-# So, we use `ninja -j 2` instead of `ninja -j$(nproc)` to avoid OOM errors. You may tune this value according to your environment.
 RUN curl -L https://github.com/libvips/libvips/releases/download/v8.18.0/vips-8.18.0.tar.xz | tar xJ       && \
     cd vips-8.18.0                                                                                         && \
     export LDFLAGS="-static -L/usr/local/lib -L/usr/lib -pthread -Wl,-Bstatic -llcms2 -lopenjp2 -ltiff -ldeflate -ljpeg -lwebp -lzstd -lpixman-1 -lgio-2.0 -lgobject-2.0 -lglib-2.0 -lfontconfig -llzma -lsharpyuv -lffi -lfreetype -lexpat -luuid -lbrotlidec -lbrotlicommon -lbz2 -lpng -leconf -lz -Wl,-Bdynamic" && \
@@ -419,8 +415,11 @@ RUN curl -L https://github.com/libvips/libvips/releases/download/v8.18.0/vips-8.
     -Dspng=enabled                                                                                            \
     -Dopenexr=enabled                                                                                         \
     -Dcfitsio=enabled                                                                                         \
+    # gcc cannot detect posix_memalign somehow, but musl provides it. So, we explicitly define HAVE_POSIX_MEMALIGN.
     -Dc_args="-DHAVE_ALIGNED_ALLOC=1 -DHAVE_POSIX_MEMALIGN=1"                                                 \
     -Dc_link_args="-static -leconf" -Dcpp_link_args="-static -leconf"                                      && \
+    # Linking vips-tool binaries are very memory intensive, because of the large number of dependencies linked statically.
+    # So, we use `ninja -j 2` instead of `ninja -j$(nproc)` to avoid OOM errors. You may tune this value according to your environment.
     cd build  &&  ninja -j 2                                                                               && \
     find ./tools -maxdepth 1 -type f |xargs -i cp {} /output/                                              && \
     strip /output/*
