@@ -335,10 +335,10 @@ RUN curl -L https://poppler.freedesktop.org/poppler-26.02.0.tar.xz | tar xJ  && 
     cd ../.. && rm -rf poppler-*
 
 ###
-# Builder Stage 6: SVG
-# Depends on: Cairo, dav1d (built here)
+# Builder Stage 6: dav1d
+# Depends on: poppler (built previous stage)
 ###
-FROM builder-poppler AS builder-svg
+FROM builder-poppler AS builder-dav1d
 
 # dav1d required by librsvg
 RUN curl -L https://code.videolan.org/videolan/dav1d/-/archive/1.5.3/dav1d-1.5.3.tar.gz | tar xz  && \
@@ -353,6 +353,12 @@ RUN curl -L https://code.videolan.org/videolan/dav1d/-/archive/1.5.3/dav1d-1.5.3
     meson compile -C build                                                                        && \
     meson install -C build                                                                        && \
     cd .. && rm -rf dav1d-*
+
+###
+# Builder Stage 7: SVG
+# Depends on: Cairo, dav1d (built here)
+###
+FROM builder-dav1d AS builder-svg
 
 # librsvg for SVG
 RUN apk add --no-cache rust cargo cargo-c fribidi-dev fribidi-static                                  \
@@ -383,7 +389,7 @@ RUN apk add --no-cache rust cargo cargo-c fribidi-dev fribidi-static            
     cd .. && rm -rf librsvg-* && rm -rf /root/.cargo
 
 ###
-# Builder Stage 7: Libvips (Final)
+# Builder Stage 8: Libvips (Final)
 # Depends on: All previous stages
 ###
 FROM builder-svg AS builder-final

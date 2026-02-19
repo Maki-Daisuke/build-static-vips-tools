@@ -93,6 +93,16 @@ jobs:
           cache-from: type=registry,ref=ghcr.io/maki-daisuke/build-statically-linked-vips-tools:buildcache-poppler-${{ matrix.suffix }}
           cache-to: type=registry,ref=ghcr.io/maki-daisuke/build-statically-linked-vips-tools:buildcache-poppler-${{ matrix.suffix }},mode=max
 
+      - name: Build builder-dav1d
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: builder-dav1d
+          platforms: ${{ matrix.platform }}
+          push: false
+          cache-from: type=registry,ref=ghcr.io/maki-daisuke/build-statically-linked-vips-tools:buildcache-dav1d-${{ matrix.suffix }}
+          cache-to: type=registry,ref=ghcr.io/maki-daisuke/build-statically-linked-vips-tools:buildcache-dav1d-${{ matrix.suffix }},mode=max
+
       - name: Build builder-svg
         uses: docker/build-push-action@v6
         with:
